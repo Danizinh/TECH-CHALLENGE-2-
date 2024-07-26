@@ -1,6 +1,5 @@
 import random
 import itertools
-import sys
 import numpy as np
 from genetic_algorithm import mutate as mutacao, order_crossover as cruzamento, generate_random_population as gerar_populacao, calculate_fitness as calcular_aptidao, sort_population as ordenar_populacao
 import folium
@@ -24,7 +23,7 @@ locais_edificios = [
     (-30.0109574, -51.1899711),
     (-30.0183578, -51.200375),
     (-29.9862553, -51.191835),
-    # Podem ser adicionados mais locais
+    #Podem ser adicionados mais locais
 ]
 
 # Se houver menos edifícios fornecidos do que o necessário, gera aleatórios (para fins de exemplo)
@@ -54,13 +53,9 @@ melhores_solucoes = []
 # Loop principal
 contador_geracoes = itertools.count(start=1)
 geracao = 1
-
-while True:
-    if N_GERACOES and geracao > N_GERACOES:
-        break
-    
+while geracao <= N_GERACOES:
+       
     aptidao_populacao = [calcular_aptidao(individuo) for individuo in populacao]
-
     populacao, aptidao_populacao = ordenar_populacao(populacao, aptidao_populacao)
 
     melhor_aptidao = calcular_aptidao(populacao[0])
@@ -73,17 +68,19 @@ while True:
 
     nova_populacao = [populacao[0]]  # Elitismo
 
-    while len(nova_populacao) < TAM_POPULACAO:
-        probabilidade = 1 / np.array(aptidao_populacao)
-        pai1, pai2 = random.choices(populacao, weights=probabilidade, k=2)
 
+# Prevenção de divisão por zero
+    probabilidade = 1 / (np.array(aptidao_populacao) + 1e-6)  # Adiciona pequena constante para evitar divisão por zero
+    probabilidade /= probabilidade.sum()  # Normaliza as probabilidades
+    
+     
+    while len(nova_populacao) < TAM_POPULACAO:
+        pai1, pai2 = random.choices(populacao, weights=probabilidade, k=2)
         filho1 = cruzamento(pai1, pai2)
         filho1 = mutacao(filho1, PROBABILIDADE_MUTACAO)
-
         nova_populacao.append(filho1)
 
     populacao = nova_populacao
-
     geracao += 1
 
 # Exibe o melhor percurso em um mapa
