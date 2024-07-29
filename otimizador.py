@@ -8,8 +8,9 @@ from geopy.distance import geodesic
 # Valores constantes
 N_EDIFICIOS = 15
 TAM_POPULACAO = 100
-N_GERACOES = 300
+N_GERACOES = 1000
 PROBABILIDADE_MUTACAO = 0.6
+MAX_GERACOES_SEM_EVOLUCAO = 200 # Número máximo de gerações sem evolução
 
 # Lista de coordenadas dos edifícios (latitude, longitude)
 locais_edificios = [
@@ -50,10 +51,14 @@ populacao = gerar_populacao(list(range(len(locais_edificios))), TAM_POPULACAO)
 valores_melhor_aptidao = []
 melhores_solucoes = []
 
+# Variáveis para controle de estagnação
+melhor_aptidao_atual = float('inf')
+geracoes_sem_evolucao = 0
+
 # Loop principal
 contador_geracoes = itertools.count(start=1)
 geracao = 1
-while geracao <= N_GERACOES:
+while geracao <= N_GERACOES and geracoes_sem_evolucao < MAX_GERACOES_SEM_EVOLUCAO:
        
     aptidao_populacao = [calcular_aptidao(individuo) for individuo in populacao]
     populacao, aptidao_populacao = ordenar_populacao(populacao, aptidao_populacao)
@@ -64,7 +69,16 @@ while geracao <= N_GERACOES:
     valores_melhor_aptidao.append(melhor_aptidao)
     melhores_solucoes.append(melhor_solucao)
 
-    print(f"Geração {geracao}: Melhor aptidão = {round(melhor_aptidao, 2)} km - {melhor_solucao}")
+    melhor_aptidao_geracao = melhor_aptidao
+
+    # Verifica e atualiza o controle de estagnação
+    if melhor_aptidao_geracao < melhor_aptidao_atual:
+        melhor_aptidao_atual = melhor_aptidao_geracao
+        geracoes_sem_evolucao = 0
+    else:
+        geracoes_sem_evolucao += 1
+
+    print(f"Geração {geracao}: Melhor aptidão = {melhor_aptidao_atual}, Sem evolução por {geracoes_sem_evolucao} gerações")
 
     nova_populacao = [populacao[0]]  # Elitismo
 
